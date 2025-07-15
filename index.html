@@ -17,18 +17,32 @@
     }
 
     #background-image {
-      background-image: linear-gradient(to bottom, rgba(0,0,0,0.85), rgba(26,0,0,0.85)), url('nebula.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -2;
-    }
+  background-image: linear-gradient(to bottom, rgba(0,0,0,0.85), rgba(26,0,0,0.85)), url('nebula.png');
+  background-size: 110% 110%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2;
+  animation: driftBackground 60s linear infinite;
+}
+
+@keyframes driftBackground {
+  0% {
+    background-position: center;
+  }
+  50% {
+    background-position: 53% 47%;
+  }
+  100% {
+    background-position: center;
+  }
+}
+
 
     .container {
       max-width: 800px;
