@@ -107,18 +107,21 @@
       font-style: italic;
     }
 
-    .video-section {
-      margin-top: 80px;
-      text-align: center;
-      }
-
-    .video-section video {
-      width: 100%;
-      max-width: 400px;
-      height: auto;
+    .about-video {
+      margin-top: 20px;
+      width: 250px;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
       border-radius: 8px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-      }
+    }
+
+    .about-video video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
 
   </style>
 </head>
@@ -145,6 +148,19 @@
       <p>
         I’m a PhD student in astrophysics at the Centre for Astrophysics Research (CAR), University of Hertfordshire, and a visiting lecturer in data science. 
       </p>
+       <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+    
+    <div class="about-video">
+      <video
+        muted
+        playsinline
+        controls
+        controlslist="nodownload nofullscreen noremoteplayback"
+        disablepictureinpicture
+      >
+        <source src="edf7f910-0212-42a6-8247-6fed6cc59a52.mp4" type="video/mp4">
+      </video>
+    </div>
     </div>
 
     <div class="section">
