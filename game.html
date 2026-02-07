@@ -1,0 +1,176 @@
+game/game.html
+<!DOCTYPE html>
+<html>
+  <body>
+    <canvas id="game" width="640" height="480"></canvas>
+
+    <script>
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+
+      // ---------- VIEWPORT ----------
+      const VIEW_W = 640;
+      const VIEW_H = 480;
+
+      canvas.width = VIEW_W;
+      canvas.height = VIEW_H;
+
+      // ---------- MAP ----------
+      const mapImg = new Image();
+      mapImg.src = "map.png"; // 1920x1440
+
+      // ---------- SPRITE SETUP ----------
+      const COLS = 3;
+      const ROWS = 4;
+      const SCALE = 0.10;      // character size
+      const TILE = 32;
+      const STEP = TILE / 6;   // slower movement
+      const ZOOM = 1.5;
+      const music = new Audio("music.mp3");
+      music.loop = true;
+      music.volume = 0.4; // 0.0 to 1.0
+      let musicStarted = false;
+
+
+
+    
+
+
+      let x = 10 * TILE;
+      let y = 6 * TILE;
+
+      let dir = 0;   // 0=down,1=left,2=right,3=up
+      let frame = 0;
+
+      let FRAME_W, FRAME_H;
+
+      const sprite = new Image();
+      sprite.src = "player.png";
+
+      sprite.onload = () => {
+        FRAME_W = sprite.width / COLS;
+        FRAME_H = sprite.height / ROWS;
+        draw();
+      };
+
+      // ---------- STEP ----------
+      function step() {
+        if (dir === 0) y += STEP;
+        if (dir === 1) x -= STEP;
+        if (dir === 2) x += STEP;
+        if (dir === 3) y -= STEP;
+
+        frame = frame === 0 ? 1 : 0;
+      }
+
+      // ---------- INPUT ----------
+      document.addEventListener("keydown", (e) => {
+
+        if(!musicStarted) {
+             music.play();
+            musicStarted = true;
+          }
+
+
+        if (e.key === "ArrowDown")  { dir = 0; moved = true; }
+        if (e.key === "ArrowLeft")  { dir = 1; moved = true; }
+        if (e.key === "ArrowRight") { dir = 2; moved = true; }
+        if (e.key === "ArrowUp")    { dir = 3; moved = true; }
+
+        if (moved) {
+          step();
+          draw();
+        }
+      });
+
+      // ---------- DRAW ----------
+      function draw() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, VIEW_W, VIEW_H);
+
+  // apply zoom
+  ctx.scale(ZOOM, ZOOM);
+
+  const viewW = VIEW_W / ZOOM;
+  const viewH = VIEW_H / ZOOM;
+
+  // camera follows player
+  let camX = x - viewW / 2;
+  let camY = y - viewH / 2;
+
+  // clamp camera
+const maxCamX = mapImg.width - viewW;
+const maxCamY = mapImg.height - viewH;
+
+camX = Math.max(0, Math.min(camX, maxCamX));
+camY = Math.max(0, Math.min(camY, maxCamY));
+
+
+  // draw map
+  if (mapImg.complete) {
+    if (!mapImg.complete) return;
+    ctx.drawImage(mapImg, -camX, -camY);
+  }
+
+  const w = FRAME_W * SCALE;
+  const h = FRAME_H * SCALE;
+
+  const drawX = x - camX;
+  const drawY = y - camY;
+
+  ctx.save();
+
+  if (dir === 1 || dir === 2) {
+    const col = frame;
+
+    if (dir === 1) {
+      ctx.translate(drawX + w, drawY);
+      ctx.scale(-1, 1);
+      ctx.drawImage(
+        sprite,
+        col * FRAME_W,
+        1 * FRAME_H,
+        FRAME_W,
+        FRAME_H,
+        0,
+        0,
+        w,
+        h
+      );
+    } else {
+      ctx.drawImage(
+        sprite,
+        col * FRAME_W,
+        1 * FRAME_H,
+        FRAME_W,
+        FRAME_H,
+        drawX,
+        drawY,
+        w,
+        h
+      );
+    }
+  } else {
+    const col = frame === 0 ? 1 : 2;
+
+    ctx.drawImage(
+      sprite,
+      col * FRAME_W,
+      (dir === 0 ? 0 : 3) * FRAME_H,
+      FRAME_W,
+      FRAME_H,
+      drawX,
+      drawY,
+      w,
+      h
+    );
+  }
+
+  ctx.restore();
+}
+
+    </script>
+  </body>
+</html>
+
+
