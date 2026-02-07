@@ -1,216 +1,300 @@
 <!DOCTYPE html>
-<html>
-  <body>
-    <canvas id="game" width="640" height="480"></canvas>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nikhil Ratnaparkhi</title>
 
-    <script>
-      console.log("NEW CODE LOADED");
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-      const canvas = document.getElementById("game");
-      const ctx = canvas.getContext("2d");
+<style>
+html, body {
+margin: 0;
+padding: 0;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+color: white;
+background-color: transparent;
+}
 
-      // ---------- VIEWPORT ----------
-      const VIEW_W = 640;
-      const VIEW_H = 480;
-      canvas.width = VIEW_W;
-      canvas.height = VIEW_H;
+#background-image {
+background-image: linear-gradient(to bottom, rgba(0,0,0,0.85), rgba(26,0,0,0.85)), url('nebula.png');
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+background-attachment: fixed;
+position: fixed;
+top: 0;
+left: 0;
+width: 100vw;
+height: 100vh;
+z-index: -2;
+}
 
-      // ---------- CONSTANTS ----------
-      const TILE = 32;
-      const STEP = TILE / 6;
-      const SCALE = 0.10;
-      const ZOOM = 1.5;
+.container {
+max-width: 800px;
+margin: 60px auto;
+padding: 0 20px;
+}
 
-      // ---------- PLAYER SPRITE GRID ----------
-      const COLS = 3;
-      const ROWS = 4;
+.header {
+text-align: center;
+margin-top: 100px;
+}
 
-      // ---------- NPC SPRITE GRID ----------
-      const NPC_COLS = 3;
-      const NPC_ROWS = 3;
-      const NPC_IDLE_ROW = 0;
-      const NPC_IDLE_FRAMES = [1, 2];
+.header h1 {
+font-size: 2.5em;
+margin-bottom: 0.2em;
+}
 
-      // ---------- AUDIO ----------
-      const music = new Audio("music2.mp3");
-      music.loop = true;
-      music.volume = 0.4;
-      let musicStarted = false;
+.header h3 {
+font-weight: normal;
+font-size: 1.1em;
+color: #cccccc;
+margin: 0.2em;
+}
 
-      // ---------- MAP ----------
-      const mapImg = new Image();
-      mapImg.src = "map.png";
+.icons {
+margin-top: 10px;
+}
 
-      // ---------- PLAYER STATE ----------
-      let x = 10 * TILE;
-      let y = 6 * TILE;
-      let dir = 0;   // 0=down,1=left,2=right,3=up
-      let frame = 0;
-      let FRAME_W, FRAME_H;
+.icons a {
+margin: 0 12px;
+color: white;
+text-decoration: none;
+font-size: 1.6em;
+}
 
-      // ---------- NPC STATE ----------
-      let NPC_FRAME_W, NPC_FRAME_H;
-      let npcFrameIndex = 0;
-      let npcTimer = 0;
+.section {
+margin-top: 80px;
+font-size: 1.05em;
+line-height: 1.7;
+}
 
-      const npcX = 14 * TILE;
-      const npcY = 8 * TILE;
+h2 {
+font-size: 1.4em;
+border-bottom: 1px solid #444;
+padding-bottom: 4px;
+margin-bottom: 15px;
+}
 
-      // ---------- IMAGES ----------
-      const sprite = new Image();
-      sprite.src = "player.png";
+a {
+color: white;
+text-decoration: none;
+}
 
-      const npc = new Image();
-      npc.src = "npc.png";
+a:hover {
+text-decoration: underline;
+}
+.workstation-figure {
+margin: 30px auto 0 auto;
+text-align: center;
+}
 
-      // ---------- LOAD SPRITES ----------
-      sprite.onload = () => {
-        FRAME_W = sprite.width / COLS;
-        FRAME_H = sprite.height / ROWS;
-      };
+.workstation-figure img {
+display: block;
+margin: 0 auto;
+width: 100%;
+max-width: 700px;
+height: auto;
+border-radius: 6px;
+box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
 
-      npc.onload = () => {
-        NPC_FRAME_W = npc.width / NPC_COLS;
-        NPC_FRAME_H = npc.height / NPC_ROWS;
-      };
+.workstation-figure figcaption {
+margin-top: 10px;
+font-size: 0.9em;
+color: #bbbbbb;
+font-style: italic;
+}
 
-      // ---------- PLAYER STEP ----------
-      function step() {
-        if (dir === 0) y += STEP;
-        if (dir === 1) x -= STEP;
-        if (dir === 2) x += STEP;
-        if (dir === 3) y -= STEP;
-        frame = frame === 0 ? 1 : 0;
-      }
+.about-video {
+margin-top: 20px;
+width: 320px;
+aspect-ratio: 1 / 1;
+overflow: hidden;
+border-radius: 8px;
+box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
 
-      // ---------- NPC ANIMATION ----------
-      function updateNPC() {
-        npcTimer++;
-        if (npcTimer > 80) {
-          npcFrameIndex = (npcFrameIndex + 1) % NPC_IDLE_FRAMES.length;
-          npcTimer = 0;
-        }
-      }
+.about-video video {
+width: 100%;
+height: 100%;
+object-fit: contain;
+}
 
-      // ---------- INPUT ----------
-      document.addEventListener("keydown", (e) => {
-        if (!musicStarted) {
-          music.play();
-          musicStarted = true;
-        }
+.about-caption {
+margin-top: 8px;
+font-size: 0.85em;
+color: ##e0e0e0;
+font-style: italic;
+text-align: center;
+}
 
-        let moved = false;
+.cv-divider {
+border: none;
+border-bottom: 1px solid #444;
+margin: 8px 0 16px 0;
+}
 
-        if (e.key === "ArrowDown")  { dir = 0; moved = true; }
-        if (e.key === "ArrowLeft")  { dir = 1; moved = true; }
-        if (e.key === "ArrowRight") { dir = 2; moved = true; }
-        if (e.key === "ArrowUp")    { dir = 3; moved = true; }
+</style>
+</head>
 
-        if (moved) step();
-      });
+<body>
+<div id="background-image"></div>
 
-      // ---------- DRAW ----------
-      function draw() {
-        if (!mapImg.complete || !FRAME_W || !NPC_FRAME_W) return;
+<div class="container">
+<div class="header">
+<h1>Nikhil Ratnaparkhi</h1>
+<h3>Centre for Astrophysics Research, University of Hertfordshire</h3>
+<div class="icons">
+<a href="mailto:n.ratnaparkhi@herts.ac.uk" title="Email"><i class="fa-solid fa-envelope"></i></a>
+<a href="https://github.com/such-is-life16" target="_blank" title="GitHub"><i class="fa-brands fa-github"></i></a>
+<a href="https://www.linkedin.com/in/nikhil-ratnaparkhi-4128913a3/" target="_blank" title="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+<a href="https://x.com/NikhilRatnapar4" target="_blank" title="X (Twitter)">
+<i class="fa-brands fa-x-twitter"></i>
+</a>
+</div>
+</div>
 
-        ctx.setTransform(1,0,0,1,0,0);
-        ctx.clearRect(0,0,VIEW_W,VIEW_H);
-        ctx.scale(ZOOM, ZOOM);
+<div class="section">
+<h2>About Me</h2>
 
-        const viewW = VIEW_W / ZOOM;
-        const viewH = VIEW_H / ZOOM;
+<p>
+Hi! I am Nikhil :) <br>
+I’m a PhD student in astrophysics at the Centre for Astrophysics Research (CAR),
+University of Hertfordshire, and a visiting lecturer in Mathematics and Data Science.
+</p>
+</div>
 
-        let camX = x - viewW / 2;
-        let camY = y - viewH / 2;
 
-        camX = Math.max(0, Math.min(camX, mapImg.width - viewW));
-        camY = Math.max(0, Math.min(camY, mapImg.height - viewH));
+<div class="section">
+<h2>Research Overview</h2> (maybe write better)
 
-        // ----- MAP -----
-        ctx.drawImage(mapImg, -camX, -camY);
+<p>
+SAX J1712.6–3739 is the only known supersonic low mass X ray binary (LMXB) with a clearly resolved bow shock nebula.
+The system was discovered by my supervisor, Wiersema et al. (2009) :P <br>
+It is the first direct observational evidence for jet driven nebulae produced by fast moving LMXBs, a phenomenon that had been predicted theoretically
+(Heinz 2008; Yoon et al. 2011) but remained unobserved until now! 
+</p>
 
-        // ----- NPC (Dr K) -----
-        const npcCol = NPC_IDLE_FRAMES[npcFrameIndex];
-        const nw = NPC_FRAME_W * SCALE;
-        const nh = NPC_FRAME_H * SCALE;
+<p>
+The aim of my PhD is to build the first multiwavelength physical picture of such a system.
+I use I-band, Halpha polarimetry with FORS2, integral field spectroscopy from MUSE, X ray observations from Chandra and XMM Newton,
+and radio imaging from ATCA.
+</p>
 
-        ctx.drawImage(
-          npc,
-          npcCol * NPC_FRAME_W,
-          NPC_IDLE_ROW * NPC_FRAME_H,
-          NPC_FRAME_W,
-          NPC_FRAME_H,
-          npcX - camX,
-          npcY - camY,
-          nw,
-          nh
-        );
+<p>
+Alongside this, I also work on very cool dust extinction mapping techniques in external galaxies :D
+(add more)
+</p>
 
-        // ----- PLAYER (YOUR ORIGINAL LOGIC) -----
-        const w = FRAME_W * SCALE;
-        const h = FRAME_H * SCALE;
-        const drawX = x - camX;
-        const drawY = y - camY;
+<div class="section">
+<h2>CV (very brief)</h2>
 
-        ctx.save();
+<p>
+<strong>PhD in Astronomy</strong><br>
+<em>2024 –</em><br>
+Centre for Astrophysics Research (CAR)<br>
+University of Hertfordshire<br>
+<em>Supervisor: Dr Klaas Wiersema </em>
+</p>
 
-        if (dir === 1 || dir === 2) {
-          const col = frame;
+<p>
+<strong>MSc in Astrophysics</strong><br>
+<em>2022–2023</em><br>
+Cardiff University<br>
+<em>Testing Larson relations from giant molecular clouds down to infrared dark clouds.<br>
+Supervisor: Dr Ana Duarte Cabral</em>
+</p>
 
-          if (dir === 1) {
-            ctx.translate(drawX + w, drawY);
-            ctx.scale(-1, 1);
-            ctx.drawImage(
-              sprite,
-              col * FRAME_W,
-              1 * FRAME_H,
-              FRAME_W,
-              FRAME_H,
-              0,
-              0,
-              w,
-              h
-            );
-          } else {
-            ctx.drawImage(
-              sprite,
-              col * FRAME_W,
-              1 * FRAME_H,
-              FRAME_W,
-              FRAME_H,
-              drawX,
-              drawY,
-              w,
-              h
-            );
-          }
-        } else {
-          const col = frame === 0 ? 1 : 2;
+<hr class="cv-divider">
+<p><strong>Teaching</strong></p>
 
-          ctx.drawImage(
-            sprite,
-            col * FRAME_W,
-            (dir === 0 ? 0 : 3) * FRAME_H,
-            FRAME_W,
-            FRAME_H,
-            drawX,
-            drawY,
-            w,
-            h
-          );
-        }
+<p>
+<em>Real Analysis</em> (Level 5, BSc)<br>
+Jan 2026 –
+</p>
 
-        ctx.restore();
-      }
+<p>
+<em>Data Handling and Visualisation</em> (Level 7, MSc)<br>
+Sep 2025 –
+</p>
 
-      // ---------- GAME LOOP ----------
-      function loop() {
-        updateNPC();
-        draw();
-        requestAnimationFrame(loop);
-      }
+<p>
+<em>Principles of Data Science</em> (Level 4, BSc)<br>
+Oct 2025 – Jan 2026
+</p>
 
-      loop();
-    </script>
-  </body>
+</div>
+
+<div class="section">
+<h2>Team <em>(click to stalk them)</em></h2> 
+<div style="display: flex; flex-wrap: wrap; gap: 40px;">
+<div style="flex: 1; min-width: 300px;">
+<p>
+<a href="https://researchprofiles.herts.ac.uk/en/persons/klaas-wiersema" target="_blank">
+<strong>Dr Klaas Wiersema</strong>
+</a> – Principal Supervisor<br>
+<a href="https://researchprofiles.herts.ac.uk/en/persons/martin-krause/" target="_blank">
+<strong>Dr Martin Krause</strong>
+</a> – Second Supervisor<br>
+<a href="https://researchprofiles.herts.ac.uk/en/persons/dominic-walton/" target="_blank">
+<strong>Dr Dom Walton</strong>
+</a> – Second Supervisor (X-ray analysis)<br>
+
+
+</p>
+</div>
+<div style="flex: 1; min-width: 300px;">
+<p>
+<a href="https://warwick.ac.uk/fac/sci/physics/research/astro/people/miikapursiainen/" target="_blank"><strong>Dr Miika Pursiainen</strong></a> – FORS2 polarimetry pipeline<br>
+<a href="https://warwick.ac.uk/fac/sci/physics/research/astro/people/lyman/" target="_blank"><strong>Dr Joseph Lyman</strong></a> – Muse Data reduction<br>
+<a href="https://researchprofiles.herts.ac.uk/en/persons/jan-forbrich" target="_blank"><strong>Dr Jan Forbrich</strong></a> – Extinction Mapping<br>
+</p>
+</div>
+</div>
+</div>
+
+<div class="section">
+<h2>3D Polarisation Tomography</h2>
+<p>
+
+</p>
+<iframe src="3d_polarisation_plot.html" width="100%" height="600" style="border:none;"></iframe>
+<figcaption> Three dimensional structure of polarised starlight around SAX J1712.6 3739.
+The red marker shows the position of the X ray binary, located at roughly 4.5 to 5.5 kiloparsecs</figcaption>
+</div>
+
+<div class="section">
+<h2>What I hope you get this year :) </h2>
+
+<div style="display:flex; justify-content:center; margin-top:20px;">
+<div class="about-video">
+<video
+muted
+playsinline
+controls
+controlslist="nodownload nofullscreen noremoteplayback"
+disablepictureinpicture
+>
+<source src="edf7f910-0212-42a6-8247-6fed6cc59a52.mp4" type="video/mp4">
+</video>
+</div>
+</div>
+</div>
+
+
+      <div style="display:flex; justify-content:center; margin-top:20px;">
+        
+<iframe
+src="game.html"
+width="640"
+height="480"
+style="border:none; image-rendering: pixelated;"
+></iframe>
+
+
+
+</div>
+</body>
 </html>
