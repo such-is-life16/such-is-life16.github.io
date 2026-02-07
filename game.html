@@ -18,7 +18,7 @@
       const ROWS = 4;
       const TILE = 32;
       const STEP = TILE / 6;
-      const SCALE = 0.30;
+      const SCALE = 0.10;
       const ZOOM = 1.5;
 
       // ---------- AUDIO ----------
@@ -52,15 +52,15 @@ npc.onload = () => {
 
 
 const NPC_COLS = 3;
-const NPC_ROWS = 4;
+const NPC_ROWS = 1;
 
 let NPC_FRAME_W, NPC_FRAME_H;
 let npcFrame = 0;
 let npcTimer = 0;
 
 // fixed world position (pick something nice)
-const npcX = x;
-const npcY = y;
+const npcX = 14 * TILE;
+const npcY = 8 * TILE;
 
 
       mapImg.onload = draw;
