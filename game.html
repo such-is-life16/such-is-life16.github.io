@@ -1,4 +1,3 @@
-game/game.html
 <!DOCTYPE html>
 <html>
   <body>
@@ -11,41 +10,38 @@ game/game.html
       // ---------- VIEWPORT ----------
       const VIEW_W = 640;
       const VIEW_H = 480;
-
       canvas.width = VIEW_W;
       canvas.height = VIEW_H;
 
-      // ---------- MAP ----------
-      const mapImg = new Image();
-      mapImg.src = "map.png"; // 1920x1440
-
-      // ---------- SPRITE SETUP ----------
+      // ---------- CONSTANTS ----------
       const COLS = 3;
       const ROWS = 4;
-      const SCALE = 0.10;      // character size
       const TILE = 32;
-      const STEP = TILE / 6;   // slower movement
+      const STEP = TILE / 6;
+      const SCALE = 0.10;
       const ZOOM = 1.5;
+
+      // ---------- AUDIO ----------
       const music = new Audio("music.mp3");
       music.loop = true;
-      music.volume = 0.4; // 0.0 to 1.0
+      music.volume = 0.4;
       let musicStarted = false;
 
-
-
-    
-
-
+      // ---------- STATE ----------
       let x = 10 * TILE;
       let y = 6 * TILE;
-
-      let dir = 0;   // 0=down,1=left,2=right,3=up
+      let dir = 0;
       let frame = 0;
-
       let FRAME_W, FRAME_H;
+
+      // ---------- IMAGES ----------
+      const mapImg = new Image();
+      mapImg.src = "map.png";
 
       const sprite = new Image();
       sprite.src = "player.png";
+
+      mapImg.onload = draw;
 
       sprite.onload = () => {
         FRAME_W = sprite.width / COLS;
@@ -59,38 +55,21 @@ game/game.html
         if (dir === 1) x -= STEP;
         if (dir === 2) x += STEP;
         if (dir === 3) y -= STEP;
-
         frame = frame === 0 ? 1 : 0;
       }
 
       // ---------- INPUT ----------
       document.addEventListener("keydown", (e) => {
+        if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+          e.preventDefault();
+        }
 
-  // prevent page scroll
-  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-    e.preventDefault();
-  }
+        if (!musicStarted) {
+          music.play();
+          musicStarted = true;
+        }
 
-  // start music once
-  if (!musicStarted) {
-    music.play();
-    musicStarted = true;
-  }
-
-  let moved = false;
-
-  if (e.key === "ArrowDown")  { dir = 0; moved = true; }
-  if (e.key === "ArrowLeft")  { dir = 1; moved = true; }
-  if (e.key === "ArrowRight") { dir = 2; moved = true; }
-  if (e.key === "ArrowUp")    { dir = 3; moved = true; }
-
-  if (moved) {
-    step();
-    draw();
-  }
-});
-
-
+        let moved = false;
 
         if (e.key === "ArrowDown")  { dir = 0; moved = true; }
         if (e.key === "ArrowLeft")  { dir = 1; moved = true; }
@@ -105,92 +84,46 @@ game/game.html
 
       // ---------- DRAW ----------
       function draw() {
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, VIEW_W, VIEW_H);
+        if (!mapImg.complete || !FRAME_W) return;
 
-  // apply zoom
-  ctx.scale(ZOOM, ZOOM);
+        ctx.setTransform(1,0,0,1,0,0);
+        ctx.clearRect(0,0,VIEW_W,VIEW_H);
+        ctx.scale(ZOOM, ZOOM);
 
-  const viewW = VIEW_W / ZOOM;
-  const viewH = VIEW_H / ZOOM;
+        const viewW = VIEW_W / ZOOM;
+        const viewH = VIEW_H / ZOOM;
 
-  // camera follows player
-  let camX = x - viewW / 2;
-  let camY = y - viewH / 2;
+        let camX = x - viewW / 2;
+        let camY = y - viewH / 2;
 
-  // clamp camera
-const maxCamX = mapImg.width - viewW;
-const maxCamY = mapImg.height - viewH;
+        camX = Math.max(0, Math.min(camX, mapImg.width - viewW));
+        camY = Math.max(0, Math.min(camY, mapImg.height - viewH));
 
-camX = Math.max(0, Math.min(camX, maxCamX));
-camY = Math.max(0, Math.min(camY, maxCamY));
+        ctx.drawImage(mapImg, -camX, -camY);
 
+        const w = FRAME_W * SCALE;
+        const h = FRAME_H * SCALE;
+        const drawX = x - camX;
+        const drawY = y - camY;
 
-  // draw map
-  if (mapImg.complete) {
-    if (!mapImg.complete) return;
-    ctx.drawImage(mapImg, -camX, -camY);
-  }
+        ctx.save();
 
-  const w = FRAME_W * SCALE;
-  const h = FRAME_H * SCALE;
+        if (dir === 1 || dir === 2) {
+          const col = frame;
+          if (dir === 1) {
+            ctx.translate(drawX + w, drawY);
+            ctx.scale(-1,1);
+            ctx.drawImage(sprite, col*FRAME_W, FRAME_H, FRAME_W, FRAME_H, 0,0,w,h);
+          } else {
+            ctx.drawImage(sprite, col*FRAME_W, FRAME_H, FRAME_W, FRAME_H, drawX,drawY,w,h);
+          }
+        } else {
+          const col = frame === 0 ? 1 : 2;
+          ctx.drawImage(sprite, col*FRAME_W, (dir===0?0:3)*FRAME_H, FRAME_W, FRAME_H, drawX,drawY,w,h);
+        }
 
-  const drawX = x - camX;
-  const drawY = y - camY;
-
-  ctx.save();
-
-  if (dir === 1 || dir === 2) {
-    const col = frame;
-
-    if (dir === 1) {
-      ctx.translate(drawX + w, drawY);
-      ctx.scale(-1, 1);
-      ctx.drawImage(
-        sprite,
-        col * FRAME_W,
-        1 * FRAME_H,
-        FRAME_W,
-        FRAME_H,
-        0,
-        0,
-        w,
-        h
-      );
-    } else {
-      ctx.drawImage(
-        sprite,
-        col * FRAME_W,
-        1 * FRAME_H,
-        FRAME_W,
-        FRAME_H,
-        drawX,
-        drawY,
-        w,
-        h
-      );
-    }
-  } else {
-    const col = frame === 0 ? 1 : 2;
-
-    ctx.drawImage(
-      sprite,
-      col * FRAME_W,
-      (dir === 0 ? 0 : 3) * FRAME_H,
-      FRAME_W,
-      FRAME_H,
-      drawX,
-      drawY,
-      w,
-      h
-    );
-  }
-
-  ctx.restore();
-}
-
+        ctx.restore();
+      }
     </script>
   </body>
 </html>
-
-
