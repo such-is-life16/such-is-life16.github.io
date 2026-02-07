@@ -4,6 +4,8 @@
     <canvas id="game" width="640" height="480"></canvas>
 
     <script>
+      console.log("NEW CODE LOADED");
+
       const canvas = document.getElementById("game");
       const ctx = canvas.getContext("2d");
 
@@ -20,25 +22,29 @@
       const ZOOM = 1.5;
 
       // ---------- PLAYER SPRITE GRID ----------
-      const PLAYER_COLS = 3;
-      const PLAYER_ROWS = 4;
+      const COLS = 3;
+      const ROWS = 4;
 
       // ---------- NPC SPRITE GRID ----------
-      const NPC_COLS = 3;   // frames across
-      const NPC_ROWS = 3;   // actual rows in image
-      const NPC_IDLE_ROW = 0; // FRONT FACING ROW
-      const NPC_IDLE_FRAMES = [1, 2]; // sway only
+      const NPC_COLS = 3;
+      const NPC_ROWS = 3;
+      const NPC_IDLE_ROW = 0;
+      const NPC_IDLE_FRAMES = [1, 2];
 
       // ---------- AUDIO ----------
       const music = new Audio("music2.mp3");
       music.loop = true;
-      music.volume = 0.3;
+      music.volume = 0.4;
       let musicStarted = false;
+
+      // ---------- MAP ----------
+      const mapImg = new Image();
+      mapImg.src = "map.png";
 
       // ---------- PLAYER STATE ----------
       let x = 10 * TILE;
       let y = 6 * TILE;
-      let dir = 0;
+      let dir = 0;   // 0=down,1=left,2=right,3=up
       let frame = 0;
       let FRAME_W, FRAME_H;
 
@@ -51,34 +57,22 @@
       const npcY = 8 * TILE;
 
       // ---------- IMAGES ----------
-      const mapImg = new Image();
-      mapImg.src = "map.png";
-
-      const player = new Image();
-      player.src = "player.png";
+      const sprite = new Image();
+      sprite.src = "player.png";
 
       const npc = new Image();
       npc.src = "npc.png";
 
       // ---------- LOAD SPRITES ----------
-      player.onload = () => {
-        FRAME_W = player.width / PLAYER_COLS;
-        FRAME_H = player.height / PLAYER_ROWS;
+      sprite.onload = () => {
+        FRAME_W = sprite.width / COLS;
+        FRAME_H = sprite.height / ROWS;
       };
 
       npc.onload = () => {
         NPC_FRAME_W = npc.width / NPC_COLS;
         NPC_FRAME_H = npc.height / NPC_ROWS;
       };
-
-      // ---------- NPC ANIMATION ----------
-      function updateNPC() {
-        npcTimer++;
-        if (npcTimer > 80) { // calm idle sway
-          npcFrameIndex = (npcFrameIndex + 1) % NPC_IDLE_FRAMES.length;
-          npcTimer = 0;
-        }
-      }
 
       // ---------- PLAYER STEP ----------
       function step() {
@@ -89,21 +83,30 @@
         frame = frame === 0 ? 1 : 0;
       }
 
+      // ---------- NPC ANIMATION ----------
+      function updateNPC() {
+        npcTimer++;
+        if (npcTimer > 80) {
+          npcFrameIndex = (npcFrameIndex + 1) % NPC_IDLE_FRAMES.length;
+          npcTimer = 0;
+        }
+      }
+
       // ---------- INPUT ----------
       document.addEventListener("keydown", (e) => {
-        if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
-          e.preventDefault();
-        }
-
         if (!musicStarted) {
           music.play();
           musicStarted = true;
         }
 
-        if (e.key === "ArrowDown")  { dir = 0; step(); }
-        if (e.key === "ArrowLeft")  { dir = 1; step(); }
-        if (e.key === "ArrowRight") { dir = 2; step(); }
-        if (e.key === "ArrowUp")    { dir = 3; step(); }
+        let moved = false;
+
+        if (e.key === "ArrowDown")  { dir = 0; moved = true; }
+        if (e.key === "ArrowLeft")  { dir = 1; moved = true; }
+        if (e.key === "ArrowRight") { dir = 2; moved = true; }
+        if (e.key === "ArrowUp")    { dir = 3; moved = true; }
+
+        if (moved) step();
       });
 
       // ---------- DRAW ----------
@@ -143,21 +146,61 @@
           nh
         );
 
-        // ----- PLAYER -----
-        const pw = FRAME_W * SCALE;
-        const ph = FRAME_H * SCALE;
+        // ----- PLAYER (YOUR ORIGINAL LOGIC) -----
+        const w = FRAME_W * SCALE;
+        const h = FRAME_H * SCALE;
+        const drawX = x - camX;
+        const drawY = y - camY;
 
-        ctx.drawImage(
-          player,
-          frame * FRAME_W,
-          dir * FRAME_H,
-          FRAME_W,
-          FRAME_H,
-          x - camX,
-          y - camY,
-          pw,
-          ph
-        );
+        ctx.save();
+
+        if (dir === 1 || dir === 2) {
+          const col = frame;
+
+          if (dir === 1) {
+            ctx.translate(drawX + w, drawY);
+            ctx.scale(-1, 1);
+            ctx.drawImage(
+              sprite,
+              col * FRAME_W,
+              1 * FRAME_H,
+              FRAME_W,
+              FRAME_H,
+              0,
+              0,
+              w,
+              h
+            );
+          } else {
+            ctx.drawImage(
+              sprite,
+              col * FRAME_W,
+              1 * FRAME_H,
+              FRAME_W,
+              FRAME_H,
+              drawX,
+              drawY,
+              w,
+              h
+            );
+          }
+        } else {
+          const col = frame === 0 ? 1 : 2;
+
+          ctx.drawImage(
+            sprite,
+            col * FRAME_W,
+            (dir === 0 ? 0 : 3) * FRAME_H,
+            FRAME_W,
+            FRAME_H,
+            drawX,
+            drawY,
+            w,
+            h
+          );
+        }
+
+        ctx.restore();
       }
 
       // ---------- GAME LOOP ----------
