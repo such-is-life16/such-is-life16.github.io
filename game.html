@@ -66,10 +66,30 @@ game/game.html
       // ---------- INPUT ----------
       document.addEventListener("keydown", (e) => {
 
-        if(!musicStarted) {
-             music.play();
-            musicStarted = true;
-          }
+  // prevent page scroll
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+    e.preventDefault();
+  }
+
+  // start music once
+  if (!musicStarted) {
+    music.play();
+    musicStarted = true;
+  }
+
+  let moved = false;
+
+  if (e.key === "ArrowDown")  { dir = 0; moved = true; }
+  if (e.key === "ArrowLeft")  { dir = 1; moved = true; }
+  if (e.key === "ArrowRight") { dir = 2; moved = true; }
+  if (e.key === "ArrowUp")    { dir = 3; moved = true; }
+
+  if (moved) {
+    step();
+    draw();
+  }
+});
+
 
 
         if (e.key === "ArrowDown")  { dir = 0; moved = true; }
