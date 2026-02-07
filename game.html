@@ -18,7 +18,8 @@
       // ---------- CONSTANTS ----------
       const TILE = 32;
       const STEP = TILE / 6;
-      const SCALE = 0.10;
+      const PLAYER_SCALE = 0.08; // YOU smaller
+      const NPC_SCALE = 0.10;    // Dr K taller
       const ZOOM = 1.5;
 
       // ---------- PLAYER SPRITE GRID ----------
@@ -74,7 +75,7 @@
         NPC_FRAME_H = npc.height / NPC_ROWS;
       };
 
-      // ---------- PLAYER STEP ----------
+      // ---------- PLAYER STEP (UNCHANGED) ----------
       function step() {
         if (dir === 0) y += STEP;
         if (dir === 1) x -= STEP;
@@ -94,6 +95,12 @@
 
       // ---------- INPUT ----------
       document.addEventListener("keydown", (e) => {
+
+        // STOP PAGE SCROLL
+        if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+          e.preventDefault();
+        }
+
         if (!musicStarted) {
           music.play();
           musicStarted = true;
@@ -131,8 +138,8 @@
 
         // ----- NPC (Dr K) -----
         const npcCol = NPC_IDLE_FRAMES[npcFrameIndex];
-        const nw = NPC_FRAME_W * SCALE;
-        const nh = NPC_FRAME_H * SCALE;
+        const nw = NPC_FRAME_W * NPC_SCALE;
+        const nh = NPC_FRAME_H * NPC_SCALE;
 
         ctx.drawImage(
           npc,
@@ -146,9 +153,9 @@
           nh
         );
 
-        // ----- PLAYER (YOUR ORIGINAL LOGIC) -----
-        const w = FRAME_W * SCALE;
-        const h = FRAME_H * SCALE;
+        // ----- PLAYER (ORIGINAL WALKING LOGIC) -----
+        const w = FRAME_W * PLAYER_SCALE;
+        const h = FRAME_H * PLAYER_SCALE;
         const drawX = x - camX;
         const drawY = y - camY;
 
