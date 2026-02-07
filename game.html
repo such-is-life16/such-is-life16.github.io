@@ -41,6 +41,22 @@
       const sprite = new Image();
       sprite.src = "player.png";
 
+      // ---------- NPC (Dr K) ----------
+const npc = new Image();
+npc.src = "npc.png";
+
+const NPC_COLS = 3;
+const NPC_ROWS = 4;
+
+let NPC_FRAME_W, NPC_FRAME_H;
+let npcFrame = 0;
+let npcTimer = 0;
+
+// fixed world position (pick something nice)
+const npcX = 14 * TILE;
+const npcY = 8 * TILE;
+
+
       mapImg.onload = draw;
 
       sprite.onload = () => {
@@ -48,8 +64,21 @@
         FRAME_H = sprite.height / ROWS;
         draw();
       };
+      npc.onload = () => {
+  NPC_FRAME_W = npc.width / NPC_COLS;
+  NPC_FRAME_H = npc.height / NPC_ROWS;
+};
+
 
       // ---------- STEP ----------
+      function updateNPC() {
+  npcTimer++;
+  if (npcTimer > 20) {
+    npcFrame = (npcFrame + 1) % 3; // 0 → 1 → 2
+    npcTimer = 0;
+  }
+}
+
       function step() {
         if (dir === 0) y += STEP;
         if (dir === 1) x -= STEP;
@@ -100,6 +129,29 @@
         camY = Math.max(0, Math.min(camY, mapImg.height - viewH));
 
         ctx.drawImage(mapImg, -camX, -camY);
+        // ---------- DRAW NPC ----------
+if (npc.complete && NPC_FRAME_W) {
+  updateNPC();
+
+  const nw = NPC_FRAME_W * SCALE;
+  const nh = NPC_FRAME_H * SCALE;
+
+  const nx = npcX - camX;
+  const ny = npcY - camY;
+
+  ctx.drawImage(
+    npc,
+    npcFrame * NPC_FRAME_W, // columns 0–1–2
+    0,                      // row 0 only
+    NPC_FRAME_W,
+    NPC_FRAME_H,
+    nx,
+    ny,
+    nw,
+    nh
+  );
+}
+
 
         const w = FRAME_W * SCALE;
         const h = FRAME_H * SCALE;
