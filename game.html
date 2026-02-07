@@ -14,12 +14,20 @@
       canvas.height = VIEW_H;
 
       // ---------- CONSTANTS ----------
-      const COLS = 3;
-      const ROWS = 4;
       const TILE = 32;
       const STEP = TILE / 6;
       const SCALE = 0.10;
       const ZOOM = 1.5;
+
+      // ---------- PLAYER SPRITE GRID ----------
+      const PLAYER_COLS = 3;
+      const PLAYER_ROWS = 4;
+
+      // ---------- NPC SPRITE GRID ----------
+      const NPC_COLS = 3;   // frames across
+      const NPC_ROWS = 3;   // actual rows in image
+      const NPC_IDLE_ROW = 0; // FRONT FACING ROW
+      const NPC_IDLE_FRAMES = [1, 2]; // sway only
 
       // ---------- AUDIO ----------
       const music = new Audio("music2.mp3");
@@ -34,6 +42,14 @@
       let frame = 0;
       let FRAME_W, FRAME_H;
 
+      // ---------- NPC STATE ----------
+      let NPC_FRAME_W, NPC_FRAME_H;
+      let npcFrameIndex = 0;
+      let npcTimer = 0;
+
+      const npcX = 14 * TILE;
+      const npcY = 8 * TILE;
+
       // ---------- IMAGES ----------
       const mapImg = new Image();
       mapImg.src = "map.png";
@@ -41,35 +57,25 @@
       const player = new Image();
       player.src = "player.png";
 
-      // ---------- NPC (Dr K) ----------
-      const NPC_COLS = 3;
-      const NPC_ROWS = 1;
-
-      let NPC_FRAME_W, NPC_FRAME_H;
-      let npcFrame = 0;
-      let npcTimer = 0;
-
       const npc = new Image();
       npc.src = "npc.png";
+
+      // ---------- LOAD SPRITES ----------
+      player.onload = () => {
+        FRAME_W = player.width / PLAYER_COLS;
+        FRAME_H = player.height / PLAYER_ROWS;
+      };
+
       npc.onload = () => {
         NPC_FRAME_W = npc.width / NPC_COLS;
         NPC_FRAME_H = npc.height / NPC_ROWS;
       };
 
-      const npcX = 14 * TILE;
-      const npcY = 8 * TILE;
-
-      // ---------- LOAD PLAYER ----------
-      player.onload = () => {
-        FRAME_W = player.width / COLS;
-        FRAME_H = player.height / ROWS;
-      };
-
       // ---------- NPC ANIMATION ----------
       function updateNPC() {
         npcTimer++;
-        if (npcTimer > 40) {
-          npcFrame = (npcFrame + 1) % NPC_COLS;
+        if (npcTimer > 80) { // calm idle sway
+          npcFrameIndex = (npcFrameIndex + 1) % NPC_IDLE_FRAMES.length;
           npcTimer = 0;
         }
       }
@@ -94,18 +100,15 @@
           musicStarted = true;
         }
 
-        let moved = false;
-        if (e.key === "ArrowDown")  { dir = 0; moved = true; }
-        if (e.key === "ArrowLeft")  { dir = 1; moved = true; }
-        if (e.key === "ArrowRight") { dir = 2; moved = true; }
-        if (e.key === "ArrowUp")    { dir = 3; moved = true; }
-
-        if (moved) step();
+        if (e.key === "ArrowDown")  { dir = 0; step(); }
+        if (e.key === "ArrowLeft")  { dir = 1; step(); }
+        if (e.key === "ArrowRight") { dir = 2; step(); }
+        if (e.key === "ArrowUp")    { dir = 3; step(); }
       });
 
       // ---------- DRAW ----------
       function draw() {
-        if (!mapImg.complete || !FRAME_W) return;
+        if (!mapImg.complete || !FRAME_W || !NPC_FRAME_W) return;
 
         ctx.setTransform(1,0,0,1,0,0);
         ctx.clearRect(0,0,VIEW_W,VIEW_H);
@@ -120,29 +123,29 @@
         camX = Math.max(0, Math.min(camX, mapImg.width - viewW));
         camY = Math.max(0, Math.min(camY, mapImg.height - viewH));
 
+        // ----- MAP -----
         ctx.drawImage(mapImg, -camX, -camY);
 
-        // ----- DRAW NPC -----
-        if (npc.complete && NPC_FRAME_W) {
-          const nw = NPC_FRAME_W * SCALE;
-          const nh = NPC_FRAME_H * SCALE;
+        // ----- NPC (Dr K) -----
+        const npcCol = NPC_IDLE_FRAMES[npcFrameIndex];
+        const nw = NPC_FRAME_W * SCALE;
+        const nh = NPC_FRAME_H * SCALE;
 
-          ctx.drawImage(
-            npc,
-            npcFrame * NPC_FRAME_W,
-            0,
-            NPC_FRAME_W,
-            NPC_FRAME_H,
-            npcX - camX,
-            npcY - camY,
-            nw,
-            nh
-          );
-        }
+        ctx.drawImage(
+          npc,
+          npcCol * NPC_FRAME_W,
+          NPC_IDLE_ROW * NPC_FRAME_H,
+          NPC_FRAME_W,
+          NPC_FRAME_H,
+          npcX - camX,
+          npcY - camY,
+          nw,
+          nh
+        );
 
-        // ----- DRAW PLAYER -----
-        const w = FRAME_W * SCALE;
-        const h = FRAME_H * SCALE;
+        // ----- PLAYER -----
+        const pw = FRAME_W * SCALE;
+        const ph = FRAME_H * SCALE;
 
         ctx.drawImage(
           player,
@@ -152,8 +155,8 @@
           FRAME_H,
           x - camX,
           y - camY,
-          w,
-          h
+          pw,
+          ph
         );
       }
 
