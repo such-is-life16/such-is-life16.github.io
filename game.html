@@ -44,6 +44,12 @@
       // ---------- NPC (Dr K) ----------
 const npc = new Image();
 npc.src = "npc.png";
+npc.onload = () => {
+  console.log("NPC LOADED", npc.width, npc.height);
+  NPC_FRAME_W = npc.width / NPC_COLS;
+  NPC_FRAME_H = npc.height / NPC_ROWS;
+};
+
 
 const NPC_COLS = 3;
 const NPC_ROWS = 4;
