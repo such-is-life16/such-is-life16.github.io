@@ -15,6 +15,21 @@ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 color: white;
 background-color: transparent;
 }
+.header-top {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 20px;
+}
+
+.profile-pic {
+width: 80px;
+height: 80px;
+border-radius: 50%;
+object-fit: cover;
+box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+border: 2px solid rgba(255,255,255,0.6);
+}
 
 #background-image {
 background-image: linear-gradient(to bottom, rgba(0,0,0,0.85), rgba(26,0,0,0.85)), url('nebula.png');
@@ -144,7 +159,11 @@ margin: 8px 0 16px 0;
 
 <div class="container">
 <div class="header">
+
+<div class="header-top">
+<img src="Untitled design (1).png" class="profile-pic">
 <h1>Nikhil Ratnaparkhi</h1>
+</div>
 <h3>Centre for Astrophysics Research, University of Hertfordshire</h3>
 <div class="icons">
 <a href="mailto:n.ratnaparkhi@herts.ac.uk" title="Email"><i class="fa-solid fa-envelope"></i></a>
